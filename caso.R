@@ -44,12 +44,11 @@ data <- data %>% mutate(booking_type =
 
 # Change some character class type to factor types
 
-# Columns with date values in unix format
 factor_colums <- c("Car_Cancellation", "booking_type", "user_id", "vehicle_model_id",
                    "travel_type_id", "package_id", "from_area_id", "to_area_id",
                    "from_city_id","to_city_id")
 
-# Formating values if each columns 
+# Changing type if each columns 
 for (col in factor_colums) {
   data[[col]] = as.factor(data[[col]])
 }
