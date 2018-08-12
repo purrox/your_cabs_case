@@ -56,6 +56,12 @@ for (col in factor_colums) {
 # Summary Data
 summary(data)
 
+# Create Dummy columns to day
+data$timestamp <- as.POSIXct(paste(data$booking_created, data$booking_created), format="%Y-%m-%d %H:%M:%S")
+
+data$intervals <- format(strptime(as.character(data$intervals), "%H:%M:%S"), "%H:%M:%S")
+
+format(strptime(as.character(data$booking_created), "%H:%M:%S"), "%H:%M:%S")
 
 
 
