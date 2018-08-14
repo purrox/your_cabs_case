@@ -175,8 +175,7 @@ data$travel_duration <- data$travel_duration / 60
 data$travel_duration <- round(data$travel_duration, digits = 0)
 
 #Models 
-# Load test data
-
+# Create random data with similar cancellations features
 data.cancellation <- data[data$Car_Cancellation == 'Yes', ]
 data.nocancellation <- data[data$Car_Cancellation == 'No', ]
 
@@ -214,24 +213,6 @@ test <- data.random [-train_ind, ]
 
 data.cancellation <- train[train$Car_Cancellation == 'Yes', ]
 
-#Lineal Model
-full.model <- lm(as.numeric(Car_Cancellation) ~ waitingTime + distance 
-                 + as.numeric(booking_day) + travel_type_id
-                 + as.numeric(period), data = train)
-
-forward.model <-stepAIC(full.model, direction = "forward", trace = FALSE)
-
-pred_lm <- predict(forward.model, test)
-
-actuals_preds <- data.frame(cbind(actuals=as.numeric(test$Car_Cancellation), predicteds=pred_lm))  # make actuals_predicteds dataframe.
-correlation_accuracy <- cor(actuals_preds)
-
-SSE <- sum((as.numeric(test$Car_Cancellation) - pred_lm) ^ 2)
-SST <- sum((as.numeric(test$Car_Cancellation) - mean(as.numeric(test$Car_Cancellation))) ^ 2)
-1 - SST/SSE
-summary(pred_lm)
-
-
 # CARET SVM LINEAR
 trctrl <- trainControl(method = "repeatedcv", number = 10, repeats = 3)
 set.seed(123)
@@ -255,7 +236,6 @@ svm_Linear <- caret::train(Car_Cancellation ~ waitingTime + distance
                     trControl=trctrl,
                     preProcess = c("center", "scale"),
                     tuneLength = 10)
-
 
 test_pred <- predict(svm_Linear, newdata = test, na.action = na.pass)
 
@@ -348,13 +328,18 @@ rpar_model <- rpart(Car_Cancellation ~ waitingTime + distance
              + from_area_id
              + to_area_id
              + travel_duration, 
-             data = train, parms = list(split = 'gini'), method="class", control = rpart.control(minbucket = 1))
+             data = train, parms = list(split = 'gini'), method="class", control = rpart.control(minbucket = 3))
 
 print(rpar_model)
 rpart.plot(rpar_model)
 
 prediction_rpar <- predict(rpar_model, test, type="class")
 confusionMatrix(table(prediction_rpar, test$Car_Cancellation))
+
+importance_vars <- rpar_model$variable.importance
+par(mar=c(3, 8, 5, 1))
+barplot(importance_vars, horiz=TRUE, col = rainbow(20),ylim=c(0,10),
+        xlim=c(0,100),las=2, beside=FALSE )
 
 write.csv(data, file = "~/Desktop/MyData.csv")
 
